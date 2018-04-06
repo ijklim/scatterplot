@@ -53,26 +53,21 @@ Vue.component('d3-scatterplot-graph', {
       // X axis
       this.axis.x.values = d3
         .scaleLinear()
-        .domain([d3.min(this.d3Data.x), d3.max(this.d3Data.x)])
+        .domain([d3.min(this.d3Data.x), d3.max(this.d3Data.x) + 5])
         .range([this.chartWidth, 0]);
       
       // How far apart are the ticks on x axis, e.g. 7 days apart
       this.axis.x.ticks = d3
         .axisBottom(this.axis.x.values)
         .ticks(10)
-        // .ticks(d3.timeMinute.every(1))
-        // .tickFormat(d3.timeMinute.every(1), '%I:%M');
+        .tickFormat(d => d3.timeFormat('%M:%S')(d * 1000));
       
-      // Setting first, last and gap between bars, note d3DataY is required
+      // this.axis.x.scale becomes a function that converts a x value to a x position
       this.axis.x.scale = d3
-      // this.axis.x.scale = d3
-        // .scaleBand()
-        // .domain(this.d3Data.y)
-        // .paddingInner(CHART.barOffset)
-        // .paddingOuter(0)
-        // .range([0, this.chartWidth]);
         .scaleLinear()
-        .domain([d3.min(this.d3Data.x), d3.max(this.d3Data.x)])
+        .domain([d3.min(this.d3Data.x), d3.max(this.d3Data.x) + 5])
+        // d3.min(this.d3Data.x) is mapping to this.chartWidth
+        // d3.max(this.d3Data.x) + 5 (same as above) is mapping to starting of axis
         .range([this.chartWidth, 0]);
       
       // transform(x, y) specifies where x axis begins, drawn from left to right
@@ -125,14 +120,6 @@ Vue.component('d3-scatterplot-graph', {
     }
   },
   methods: {
-    pad2digits (num) {
-      return ('0' + num).slice(-2);
-    },
-    formatSeconds (seconds) {
-      return this.pad2digits(Math.floor(seconds / 60)) + 
-             ':' + 
-             this.pad2digits(seconds % 60);
-    },
     /**
      * Draw bars on chart
      */
@@ -169,10 +156,11 @@ Vue.component('d3-scatterplot-graph', {
     addListeners () {
       let component = this;
       this.ddd.chart
-        .on('mouseover', function(yData, index) {
-          let tooltipX = d3.event.pageX + 5;
-          let tooltipY = d3.event.pageY - 100;
+        .on('mouseover', function([y, x], index, circles) {
+          let tooltipX = +d3.event.pageX + 10;
+          let tooltipY = +d3.event.pageY - 100;
           component.ddd.tooltip.html(component.d3Data.tooltip[index])
+            // Top left of tooltip, relative to screen, not graph
             .style('left', `${tooltipX}px`)
             .style('top', `${tooltipY}px`)
             .style('opacity', 1);

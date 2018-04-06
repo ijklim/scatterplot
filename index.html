@@ -5,7 +5,7 @@
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
 
-  <title>Scatterplot Graph using D3 v.1</title>
+  <title>Scatterplot Graph using D3 v.2</title>
 
   <link href="https://fonts.googleapis.com/css?family=Material+Icons|Raleway" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vuetify/1.0.13/vuetify.min.css">
@@ -49,7 +49,7 @@
 
     .tooltip {
       font-family: 'Raleway';
-      font-size: 1.5em;
+      font-size: 1.2em;
       position: absolute;
       top: 0px;
       left: 0px;
@@ -57,6 +57,7 @@
       border-radius: 5px;
       background: #0D47A1;
       color: white;
+      max-width: 250px;
     }
   </style>
 </head>
@@ -89,11 +90,15 @@
         }
       },
       methods: {
-        formatTooltipData (value, t) {
+        formatTooltipData (value) {
           return `
-            <div>t: ${t}</div>
-            <div>p: ${value.Place}</div>
-            <div>d: ${value.Doping}</div>
+            <div>
+              ${value.Name}: ${value.Nationality}<br>
+              ${value.Year}, Time: ${value.Time}
+          ` +
+          (value.Doping ? `<br><br>${value.Doping}` : '') +
+          `
+            </div>
           `;
         },
         timeToSeconds (time) {
@@ -111,13 +116,14 @@
             let d3DataY = [];
             let d3Tooltip = [];
             let rank1Time = this.timeToSeconds(json[0].Time);
-
+// console.log('remove', json[0])
             json.forEach(value => {
-              // d3DataX.push(d3.timeFormat('%M:%S')((this.timeToSeconds(value.Time) - rank1Time) * 1000));
+              // remove: d3DataX.push(d3.timeFormat('%M:%S')((this.timeToSeconds(value.Time) - rank1Time) * 1000));
               d3DataX.push(this.timeToSeconds(value.Time) - rank1Time);
-              // d3DataX.push(value.Time);
+              // remove: d3DataX.push(value.Time);
               d3DataY.push(value.Place);
-              d3Tooltip.push(this.formatTooltipData(value), value.Time);
+              // remove: d3Tooltip.push(value.Place + '!');
+              d3Tooltip.push(this.formatTooltipData(value));
             });
 
             this.d3Data = {
