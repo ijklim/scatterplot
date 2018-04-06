@@ -36,10 +36,21 @@ Vue.component('d3-wrapper', {
   },
   computed: {
     wrapperStyles () {
-      return `height:${WRAPPER.height}px; width:${WRAPPER.width}px; margin:auto; background:${WRAPPER.background};`;
+      return `` +
+        `height:${WRAPPER.height}px;` +
+        `width:${WRAPPER.width}px;` +
+        `margin:auto;` +
+        `background:${WRAPPER.background};` +
+        ``;
     },
     wrapperHeader () {
-      return `height:${WRAPPER.headerHeight}px;width:100%;text-align:center;font-size:2.5rem;padding-top:25px;`;
+      return `` +
+        `height:${WRAPPER.headerHeight}px;` +
+        `width:100%;` +
+        `text-align:center;` +
+        `font-size:2.5rem;` +
+        `padding-top:25px;` +
+        ``;
     },
   },
   methods: {

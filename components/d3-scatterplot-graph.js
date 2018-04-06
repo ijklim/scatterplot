@@ -4,13 +4,13 @@ const CANVAS = {
     right: 20,
     bottom: 50,
     left: 50,
-  }
+  },
+  circleRadius: 5,
 };
 
 Vue.component('d3-scatterplot-graph', {
   template: `
-    <div :id="id">
-    </div>
+    <div :id="id" />
   `,
   // svg cannot be property by itself, changes object type during assignment, within ddd object is fine
   data () {
@@ -83,31 +83,42 @@ Vue.component('d3-scatterplot-graph', {
       
 
       // Y axis
-      // .range specifies value from top left (1) to bottom left (high number)
       this.axis.y.values = d3
         .scaleLinear()
-        // Actual data, 1 to max
-        .domain([0, d3.max(this.d3Data.y)])
-        // Label on axis, first number mapping to first number above
+        // Labels on axis, should be equal to or larger than dataset
+        .domain([d3.min(this.d3Data.y), d3.max(this.d3Data.y) + 1])
+        // Together with yGuide translate below, determines where to start drawing the axis
         .range([0, this.chartHeight]);
       
       // How many ticks are on the y axis
       this.axis.y.ticks = d3
         .axisLeft(this.axis.y.values)
-        .ticks(10);
+        .ticks(5);
       
       // this.axis.y.scale becomes a function that converts a y value to a y position
-      this.axis.y.scale = this.axis.y.values.copy();
-      // d3
-      //   .scaleLinear()
-      //   .domain([0, d3.max(this.d3Data.y)])
-      //   .range([0, this.chartHeight]);
+      this.axis.y.scale = d3
+        .scaleLinear()
+        .domain([d3.min(this.d3Data.y), d3.max(this.d3Data.y) + 1])
+        // Smallest value is mapping to margin-top
+        // Bottom left of y axis: this.chartHeight + CANVAS.margin.top, mapping to largest value on y axis
+        .range([CANVAS.margin.top, this.chartHeight + CANVAS.margin.top]);
       
       // translate(x, y) specifies where y axis begins, drawn from top to bottom
       let yGuide = this.ddd.svg
         .append('g')
         .attr('transform', `translate(${CANVAS.margin.left}, ${CANVAS.margin.top})`)
         .call(this.axis.y.ticks);
+
+      // DEBUG: Draw line for testing purpose
+      // let pathString = d3.line()([
+      //   [CANVAS.margin.left, this.axis.y.scale(30)],
+      //   [this.chartWidth+50, this.axis.y.scale(30)]
+      // ]);
+      // this.ddd.svg
+      //   .append('path')
+      //   .attr('d', pathString)
+      //   .style('stroke', 'red')
+      //   .style('stroke-dasharray', '3')
 
       this.draw();
       this.addListeners();
@@ -142,7 +153,7 @@ Vue.component('d3-scatterplot-graph', {
         .attr('fill', (data, index) => {
           return 'orange'
         })
-        .attr('r', _ => 5)
+        .attr('r', _ => CANVAS.circleRadius)
         .attr('cx', (data, index) => this.axis.x.scale(data[1]))
         .attr('cy', (data, index) => this.axis.y.scale(data[0]));
       
