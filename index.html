@@ -68,12 +68,8 @@
     <v-container fluid fill-height>
       <v-layout align-center wrap>
         <v-flex xs12 class="mb-5">
-          <d3-scatterplot-graph
-            :app-name="appName"
-            :d3-data="d3Data"
-          ></d3-scatterplot-graph>
+          <d3-wrapper :app-name="appName" :d3-data="d3Data"></d3-wrapper>
         </v-flex>
-        remove: {{ d3Data.x }}
       </v-layout>
     </v-container>
   </v-app>
@@ -81,6 +77,7 @@
   <script src='https://cdn.jsdelivr.net/npm/vue'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vuetify/1.0.13/vuetify.min.js"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="./components/d3-wrapper.js"></script>
   <script src="./components/d3-scatterplot-graph.js"></script>
   <script type='text/javascript'>
     let v = new Vue({
@@ -116,6 +113,7 @@
             let rank1Time = this.timeToSeconds(json[0].Time);
 
             json.forEach(value => {
+              // d3DataX.push(d3.timeFormat('%M:%S')((this.timeToSeconds(value.Time) - rank1Time) * 1000));
               d3DataX.push(this.timeToSeconds(value.Time) - rank1Time);
               // d3DataX.push(value.Time);
               d3DataY.push(value.Place);

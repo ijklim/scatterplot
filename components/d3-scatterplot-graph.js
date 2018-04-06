@@ -1,36 +1,15 @@
-const WRAPPER = {
-  width: 1100,
-  height: 700,
-  padding: 55,
-  background: 'rgba(255, 255, 255, .7)',
-}
-
 const CANVAS = {
   margin: {
     top: 20,
-    right: 10,
-    bottom: 25,
-    left: 20,
+    right: 20,
+    bottom: 50,
+    left: 50,
   }
-}
-
-const CHART = {
-  width: WRAPPER.width - WRAPPER.padding * 2 - CANVAS.margin.right - CANVAS.margin.left,
-  height: WRAPPER.height - WRAPPER.padding * 2 - CANVAS.margin.top - CANVAS.margin.bottom,
-  background: 'rgba(255, 255, 255, 0)',
-  barColor: '#000',
-  barOffset: 0,
-}
+};
 
 Vue.component('d3-scatterplot-graph', {
   template: `
-    <div
-      class="elevation-5 pt-4"
-      :style="wrapperStyles"
-    >
-      <h2 class="mb-4 display-1">{{ appName }}</h2>
-      <div :id="id" />
-      remove: {{ this.formatSeconds(76) }}
+    <div :id="id">
     </div>
   `,
   // svg cannot be property by itself, changes object type during assignment, within ddd object is fine
@@ -45,19 +24,26 @@ Vue.component('d3-scatterplot-graph', {
     }
   },
   props: {
-    appName: {
-      type: String,
-      default: ''
-    },
     d3Data: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
+    graphHeight: {
+      type: Number,
+      default: 0,
+    },
+    graphWidth: {
+      type: Number,
+      default: 0,
+    },
   },
   computed: {
-    wrapperStyles () {
-      return `height:${WRAPPER.height}px; width:${WRAPPER.width}px; margin:auto; background:${WRAPPER.background};`;
-    }
+    chartHeight () {
+      return this.graphHeight - CANVAS.margin.top - CANVAS.margin.bottom;
+    },
+    chartWidth () {
+      return this.graphWidth - CANVAS.margin.right - CANVAS.margin.left;
+    },
   },
   watch: {
     /**
@@ -67,29 +53,32 @@ Vue.component('d3-scatterplot-graph', {
       // X axis
       this.axis.x.values = d3
         .scaleLinear()
-        .domain([0, d3.max(this.d3Data.x)])
-        .range([CHART.width, 0]);
+        .domain([d3.min(this.d3Data.x), d3.max(this.d3Data.x)])
+        .range([this.chartWidth, 0]);
       
       // How far apart are the ticks on x axis, e.g. 7 days apart
       this.axis.x.ticks = d3
         .axisBottom(this.axis.x.values)
-        .ticks(10);
+        .ticks(10)
+        // .ticks(d3.timeMinute.every(1))
+        // .tickFormat(d3.timeMinute.every(1), '%I:%M');
       
       // Setting first, last and gap between bars, note d3DataY is required
       this.axis.x.scale = d3
+      // this.axis.x.scale = d3
         // .scaleBand()
         // .domain(this.d3Data.y)
         // .paddingInner(CHART.barOffset)
         // .paddingOuter(0)
-        // .range([0, CHART.width]);
+        // .range([0, this.chartWidth]);
         .scaleLinear()
-        .domain([0, d3.max(this.d3Data.x)])
-        .range([CHART.width, 0]);
+        .domain([d3.min(this.d3Data.x), d3.max(this.d3Data.x)])
+        .range([this.chartWidth, 0]);
       
       // transform(x, y) specifies where x axis begins, drawn from left to right
       let xGuide = this.ddd.svg
         .append('g')
-        .attr('transform', `translate(${CANVAS.margin.left}, ${CANVAS.margin.top + CHART.height})`)
+        .attr('transform', `translate(${CANVAS.margin.left}, ${CANVAS.margin.top + this.chartHeight})`)
         .call(this.axis.x.ticks);
       
 
@@ -100,7 +89,7 @@ Vue.component('d3-scatterplot-graph', {
         // Actual data, 1 to max
         .domain([0, d3.max(this.d3Data.y)])
         // Label on axis, first number mapping to first number above
-        .range([0, CHART.height]);
+        .range([0, this.chartHeight]);
       
       // How many ticks are on the y axis
       this.axis.y.ticks = d3
@@ -108,10 +97,11 @@ Vue.component('d3-scatterplot-graph', {
         .ticks(10);
       
       // this.axis.y.scale becomes a function that converts a y value to a y position
-      this.axis.y.scale = d3
-        .scaleLinear()
-        .domain([0, d3.max(this.d3Data.y)])
-        .range([0, CHART.height]);
+      this.axis.y.scale = this.axis.y.values.copy();
+      // d3
+      //   .scaleLinear()
+      //   .domain([0, d3.max(this.d3Data.y)])
+      //   .range([0, this.chartHeight]);
       
       // translate(x, y) specifies where y axis begins, drawn from top to bottom
       let yGuide = this.ddd.svg
@@ -150,7 +140,7 @@ Vue.component('d3-scatterplot-graph', {
       // circles need cx, cy, and r
       this.ddd.chart
         .attr('fill', (data, index) => {
-          return CHART.barColor
+          return 'orange'
         })
         .attr('r', _ => 5)
         .attr('cx', (data, index) => this.axis.x.scale(data[1]))
@@ -162,7 +152,7 @@ Vue.component('d3-scatterplot-graph', {
         .delay((data, index) => index * 5)
         .duration(100)
         .ease(d3.easeCircleIn)
-        .attr('y', data => CHART.height - this.axis.y.scale(data) + CANVAS.margin.top)
+        .attr('y', data => this.chartHeight - this.axis.y.scale(data) + CANVAS.margin.top)
         .attr('height', data => this.axis.y.scale(data));
     },
     addListeners () {
@@ -195,13 +185,13 @@ Vue.component('d3-scatterplot-graph', {
     // Note: Code below must be in mounted(), created() does not work
     d3.select(`#${this.id}`)
       .append('svg')
-        .attr('width', CHART.width + CANVAS.margin.right + CANVAS.margin.left)
-        .attr('height', CHART.height + CANVAS.margin.top + CANVAS.margin.bottom)
-        .style('background', CHART.background);
+        .attr('width', this.chartWidth + CANVAS.margin.right + CANVAS.margin.left)
+        .attr('height', this.chartHeight + CANVAS.margin.top + CANVAS.margin.bottom);
+        // remove: .style('background', CHART.background);
     this.ddd.svg = d3.select(`#${this.id} svg`);
     this.ddd.tooltip = d3.select('body')
                          .append('div')
                          .attr('class', 'tooltip elevation-3')
                          .style('opacity', 0);
-  }
+  },
 });
