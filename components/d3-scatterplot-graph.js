@@ -1,28 +1,28 @@
 const WRAPPER = {
   width: 1100,
   height: 700,
-  padding: 60,
-  background: '#fff'
+  padding: 55,
+  background: 'rgba(255, 255, 255, .7)',
 }
 
 const CANVAS = {
   margin: {
     top: 20,
-    right: 20,
+    right: 10,
     bottom: 25,
-    left: 50
+    left: 20,
   }
 }
 
 const CHART = {
   width: WRAPPER.width - WRAPPER.padding * 2 - CANVAS.margin.right - CANVAS.margin.left,
   height: WRAPPER.height - WRAPPER.padding * 2 - CANVAS.margin.top - CANVAS.margin.bottom,
-  background: '#E3F2FD',
-  barColor: '#64B5F6',
-  barOffset: 0
+  background: 'rgba(255, 255, 255, 0)',
+  barColor: '#000',
+  barOffset: 0,
 }
 
-Vue.component('d3-bar-chart', {
+Vue.component('d3-scatterplot-graph', {
   template: `
     <div
       class="elevation-5 pt-4"
@@ -30,6 +30,7 @@ Vue.component('d3-bar-chart', {
     >
       <h2 class="mb-4 display-1">{{ appName }}</h2>
       <div :id="id" />
+      remove: {{ this.formatSeconds(76) }}
     </div>
   `,
   // svg cannot be property by itself, changes object type during assignment, within ddd object is fine
@@ -64,65 +65,96 @@ Vue.component('d3-bar-chart', {
      */
     d3Data () {
       // X axis
-      this.axis.x.values = d3.scaleLinear()
-                             .domain([d3.min(this.d3Data.x), d3.max(this.d3Data.x)])
-                             .range([0, CHART.width]);
+      this.axis.x.values = d3
+        .scaleLinear()
+        .domain([0, d3.max(this.d3Data.x)])
+        .range([CHART.width, 0]);
+      
       // How far apart are the ticks on x axis, e.g. 7 days apart
-      this.axis.x.ticks = d3.axisBottom(this.axis.x.values)
-                            .ticks(10);
+      this.axis.x.ticks = d3
+        .axisBottom(this.axis.x.values)
+        .ticks(10);
+      
       // Setting first, last and gap between bars, note d3DataY is required
-      this.axis.x.scale = d3.scaleBand()
-                            .domain(this.d3Data.y)
-                            .paddingInner(CHART.barOffset)
-                            .paddingOuter(0)
-                            .range([0, CHART.width]);
+      this.axis.x.scale = d3
+        // .scaleBand()
+        // .domain(this.d3Data.y)
+        // .paddingInner(CHART.barOffset)
+        // .paddingOuter(0)
+        // .range([0, CHART.width]);
+        .scaleLinear()
+        .domain([0, d3.max(this.d3Data.x)])
+        .range([CHART.width, 0]);
+      
       // transform(x, y) specifies where x axis begins, drawn from left to right
-      let xGuide = this.ddd.svg.append('g')
-                              .attr('transform', `translate(${CANVAS.margin.left}, ${CANVAS.margin.top + CHART.height})`)
-                              .call(this.axis.x.ticks);
+      let xGuide = this.ddd.svg
+        .append('g')
+        .attr('transform', `translate(${CANVAS.margin.left}, ${CANVAS.margin.top + CHART.height})`)
+        .call(this.axis.x.ticks);
       
 
       // Y axis
-      // .range specifies value from top left (high number) to bottom left (0)
-      this.axis.y.values = d3.scaleLinear()
-                             .domain([0, d3.max(this.d3Data.y)])
-                             .range([CHART.height, 0]);
+      // .range specifies value from top left (1) to bottom left (high number)
+      this.axis.y.values = d3
+        .scaleLinear()
+        // Actual data, 1 to max
+        .domain([0, d3.max(this.d3Data.y)])
+        // Label on axis, first number mapping to first number above
+        .range([0, CHART.height]);
+      
       // How many ticks are on the y axis
-      this.axis.y.ticks = d3.axisLeft(this.axis.y.values)
-                            .ticks(10);
-      this.axis.y.scale = d3.scaleLinear()
-                            .domain([0, d3.max(this.d3Data.y)])
-                            .range([0, CHART.height]);
+      this.axis.y.ticks = d3
+        .axisLeft(this.axis.y.values)
+        .ticks(10);
+      
+      // this.axis.y.scale becomes a function that converts a y value to a y position
+      this.axis.y.scale = d3
+        .scaleLinear()
+        .domain([0, d3.max(this.d3Data.y)])
+        .range([0, CHART.height]);
+      
       // translate(x, y) specifies where y axis begins, drawn from top to bottom
-      let yGuide = this.ddd.svg.append('g')
-                              .attr('transform', `translate(${CANVAS.margin.left}, ${CANVAS.margin.top})`)
-                              .call(this.axis.y.ticks);
+      let yGuide = this.ddd.svg
+        .append('g')
+        .attr('transform', `translate(${CANVAS.margin.left}, ${CANVAS.margin.top})`)
+        .call(this.axis.y.ticks);
 
       this.draw();
       this.addListeners();
     }
   },
   methods: {
+    pad2digits (num) {
+      return ('0' + num).slice(-2);
+    },
+    formatSeconds (seconds) {
+      return this.pad2digits(Math.floor(seconds / 60)) + 
+             ':' + 
+             this.pad2digits(seconds % 60);
+    },
     /**
      * Draw bars on chart
      */
     draw () {
       // translate(x, y) specifies where bar begins, +1 to move right of y axis
-      this.ddd.chart = this.ddd.svg.append('g')
-                                 .attr('transform', `translate(${CANVAS.margin.left + 1}, 0)`)
-                                 .selectAll('rect')
-                                 .data(this.d3Data.y)
-                                 .enter()
-                                 .append('rect');
+      // scatterplot uses circle instead of rect
+      this.ddd.chart = this.ddd.svg
+        .append('g')
+        .attr('transform', `translate(${CANVAS.margin.left + 1}, 0)`)
+        .selectAll('circle')
+        .data(this.d3Data.y.map((y, index) => [y, this.d3Data.x[index]]))
+        .enter()
+        .append('circle');
       
+      // rect needs x, y, width, and height
+      // circles need cx, cy, and r
       this.ddd.chart
         .attr('fill', (data, index) => {
           return CHART.barColor
         })
-        // .width sets width of bar
-        .attr('width', _ => this.axis.x.scale.bandwidth())
-        .attr('x', (data, index) => this.axis.x.scale(data))
-        .attr('y', CHART.height + CANVAS.margin.top);
+        .attr('r', _ => 5)
+        .attr('cx', (data, index) => this.axis.x.scale(data[1]))
+        .attr('cy', (data, index) => this.axis.y.scale(data[0]));
       
       // .delay sets speed of drawing
       this.ddd.chart

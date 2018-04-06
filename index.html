@@ -68,12 +68,12 @@
     <v-container fluid fill-height>
       <v-layout align-center wrap>
         <v-flex xs12 class="mb-5">
-          <d3-bar-chart
+          <d3-scatterplot-graph
             :app-name="appName"
             :d3-data="d3Data"
-          ></d3-bar-chart>
+          ></d3-scatterplot-graph>
         </v-flex>
-
+        remove: {{ d3Data.x }}
       </v-layout>
     </v-container>
   </v-app>
@@ -81,37 +81,47 @@
   <script src='https://cdn.jsdelivr.net/npm/vue'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vuetify/1.0.13/vuetify.min.js"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
-  <script src="./components/d3-bar-chart.js"></script>
+  <script src="./components/d3-scatterplot-graph.js"></script>
   <script type='text/javascript'>
     let v = new Vue({
       el: '#app',
       data () {
         return {
-          appName: 'D3 Scatterplot',
+          appName: 'Doping in Professional Bicycle Racing',
           d3Data: {}
         }
       },
       methods: {
-        formatTooltipData (date, value) {
+        formatTooltipData (value, t) {
           return `
-            <div>$${value.toLocaleString('en-US')} Billion</div>
-            <div>${date.substr(0, 4)} - ${(new Date(date)).toLocaleString('en-US', { month: 'long' })}</div>
+            <div>t: ${t}</div>
+            <div>p: ${value.Place}</div>
+            <div>d: ${value.Doping}</div>
           `;
-        }
+        },
+        timeToSeconds (time) {
+          let t = time.split(':');
+          return (t[0] * 60 + (+t[1]));
+        },
       },
       mounted () {
-        let url = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/GDP-data.json';
+        let url = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/cyclist-data.json';
         fetch(url)
           .then(response => response.json())
           .then(json => {
+            // this.d3Data = json;
             let d3DataX = [];
             let d3DataY = [];
             let d3Tooltip = [];
-            json.data.forEach(([date, value]) => {
-              d3DataX.push(+date.substr(0, 4));
-              d3DataY.push(value);
-              d3Tooltip.push(this.formatTooltipData(date, value));
+            let rank1Time = this.timeToSeconds(json[0].Time);
+
+            json.forEach(value => {
+              d3DataX.push(this.timeToSeconds(value.Time) - rank1Time);
+              // d3DataX.push(value.Time);
+              d3DataY.push(value.Place);
+              d3Tooltip.push(this.formatTooltipData(value), value.Time);
             });
+
             this.d3Data = {
               x: d3DataX,
               y: d3DataY,
