@@ -5,6 +5,10 @@ const CANVAS = {
     bottom: 50,
     left: 50,
   },
+  // 5 seconds shift
+  xDomainOriginShift: 5,
+  // 1 place shift
+  yDomainOriginShift: 1,
   circleRadius: 5,
 };
 
@@ -25,8 +29,8 @@ Vue.component('d3-scatterplot-graph', {
   },
   props: {
     d3Data: {
-      type: Object,
-      default: () => {},
+      type: Array,
+      default: () => [],
     },
     graphHeight: {
       type: Number,
@@ -50,10 +54,14 @@ Vue.component('d3-scatterplot-graph', {
      * Data is now available to build structure of chart, e.g. xGuide, yGuide
      */
     d3Data () {
+      // remove: console.log(xArray);
+      // rmove: console.log(this.d3Data.map(a => a.x));
+      let xArray = this.d3Data.map(a => a.x);
+      let yArray = this.d3Data.map(a => a.y);
       // X axis
       this.axis.x.values = d3
         .scaleLinear()
-        .domain([d3.min(this.d3Data.x), d3.max(this.d3Data.x) + 5])
+        .domain([d3.min(xArray), d3.max(xArray) + CANVAS.xDomainOriginShift])
         .range([this.chartWidth, 0]);
       
       // How far apart are the ticks on x axis, e.g. 7 days apart
@@ -65,9 +73,9 @@ Vue.component('d3-scatterplot-graph', {
       // this.axis.x.scale becomes a function that converts a x value to a x position
       this.axis.x.scale = d3
         .scaleLinear()
-        .domain([d3.min(this.d3Data.x), d3.max(this.d3Data.x) + 5])
-        // d3.min(this.d3Data.x) is mapping to this.chartWidth
-        // d3.max(this.d3Data.x) + 5 (same as above) is mapping to starting of axis
+        .domain([d3.min(xArray), d3.max(xArray) + CANVAS.xDomainOriginShift])
+        // d3.min(xArray) is mapping to this.chartWidth
+        // d3.max(xArray) + 5 (same as above) is mapping to starting of axis
         .range([this.chartWidth, 0]);
       
       // transform(x, y) specifies where x axis begins, drawn from left to right
@@ -81,7 +89,7 @@ Vue.component('d3-scatterplot-graph', {
       this.axis.y.values = d3
         .scaleLinear()
         // Labels on axis, should be equal to or larger than dataset
-        .domain([d3.min(this.d3Data.y), d3.max(this.d3Data.y) + 1])
+        .domain([d3.min(yArray), d3.max(yArray) + CANVAS.yDomainOriginShift])
         // Together with yGuide translate below, determines where to start drawing the axis
         .range([0, this.chartHeight]);
       
@@ -93,7 +101,7 @@ Vue.component('d3-scatterplot-graph', {
       // this.axis.y.scale becomes a function that converts a y value to a y position
       this.axis.y.scale = d3
         .scaleLinear()
-        .domain([d3.min(this.d3Data.y), d3.max(this.d3Data.y) + 1])
+        .domain([d3.min(yArray), d3.max(yArray) + CANVAS.yDomainOriginShift])
         // Smallest value is mapping to margin-top
         // Bottom left of y axis: this.chartHeight + CANVAS.margin.top, mapping to largest value on y axis
         .range([CANVAS.margin.top, this.chartHeight + CANVAS.margin.top]);
@@ -130,7 +138,7 @@ Vue.component('d3-scatterplot-graph', {
         .append('g')
         .attr('transform', `translate(${CANVAS.margin.left + 1}, 0)`)
         .selectAll('circle')
-        .data(this.d3Data.y.map((y, index) => [y, this.d3Data.x[index]]))
+        .data(this.d3Data.map(d => [d.y, d.x]))
         .enter()
         .append('circle');
       
@@ -159,7 +167,7 @@ Vue.component('d3-scatterplot-graph', {
         .on('mouseover', function([y, x], index, circles) {
           let tooltipX = +d3.event.pageX + 10;
           let tooltipY = +d3.event.pageY - 100;
-          component.ddd.tooltip.html(component.d3Data.tooltip[index])
+          component.ddd.tooltip.html(component.d3Data[index].tooltip)
             // Top left of tooltip, relative to screen, not graph
             .style('left', `${tooltipX}px`)
             .style('top', `${tooltipY}px`)

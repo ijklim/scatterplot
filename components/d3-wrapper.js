@@ -15,7 +15,12 @@ Vue.component('d3-wrapper', {
         {{ appName }}
       </div>
 
-      <d3-scatterplot-graph :app-name="appName" :d3-data="d3Data" :graph-width="graphWidth" :graph-height="graphHeight"></d3-scatterplot-graph>
+      <d3-scatterplot-graph
+        :app-name="appName"
+        :d3-data="d3Data"
+        :graph-width="graphWidth"
+        :graph-height="graphHeight"
+      />
     </div>
   `,
   data () {
@@ -30,9 +35,9 @@ Vue.component('d3-wrapper', {
       default: ''
     },
     d3Data: {
-      type: Object,
-      default: () => {}
-    }
+      type: Array,
+      default: () => [],
+    },
   },
   computed: {
     wrapperStyles () {

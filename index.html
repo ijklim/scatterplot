@@ -86,7 +86,7 @@
       data () {
         return {
           appName: 'Doping in Professional Bicycle Racing',
-          d3Data: {}
+          d3Data: [],
         }
       },
       methods: {
@@ -101,40 +101,29 @@
             </div>
           `;
         },
+        initD3Data () {
+          let url = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/cyclist-data.json';
+          fetch(url)
+            .then(response => response.json())
+            .then(json => {
+              let rank1Time = this.timeToSeconds(json[0].Time);
+              this.d3Data = json.map(value => ({
+                tooltip: this.formatTooltipData(value),
+                x: this.timeToSeconds(value.Time) - rank1Time,
+                y: value.Place,
+              }));
+            })
+            .catch(error => {
+              console.error("Error encountered", error);
+            });
+        },
         timeToSeconds (time) {
           let t = time.split(':');
           return (t[0] * 60 + (+t[1]));
         },
       },
       mounted () {
-        let url = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/cyclist-data.json';
-        fetch(url)
-          .then(response => response.json())
-          .then(json => {
-            // this.d3Data = json;
-            let d3DataX = [];
-            let d3DataY = [];
-            let d3Tooltip = [];
-            let rank1Time = this.timeToSeconds(json[0].Time);
-// console.log('remove', json[0])
-            json.forEach(value => {
-              // remove: d3DataX.push(d3.timeFormat('%M:%S')((this.timeToSeconds(value.Time) - rank1Time) * 1000));
-              d3DataX.push(this.timeToSeconds(value.Time) - rank1Time);
-              // remove: d3DataX.push(value.Time);
-              d3DataY.push(value.Place);
-              // remove: d3Tooltip.push(value.Place + '!');
-              d3Tooltip.push(this.formatTooltipData(value));
-            });
-
-            this.d3Data = {
-              x: d3DataX,
-              y: d3DataY,
-              tooltip: d3Tooltip
-            };
-          })
-          .catch(error => {
-            console.error("Error encountered", error);
-          });
+        this.initD3Data();
       }
     });
   </script>
