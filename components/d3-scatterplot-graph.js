@@ -56,8 +56,6 @@ Vue.component('d3-scatterplot-graph', {
      * Data is now available to build structure of chart, e.g. xGuide, yGuide
      */
     d3Data () {
-      // remove: console.log(xArray);
-      // rmove: console.log(this.d3Data.map(a => a.x));
       let xArray = this.d3Data.map(a => a.x);
       let yArray = this.d3Data.map(a => a.y);
       // X axis
@@ -165,7 +163,9 @@ Vue.component('d3-scatterplot-graph', {
       let component = this;
       this.ddd.chart
         .on('mouseover', function([y, x], index, circles) {
-          let tooltipX = +d3.event.pageX + 10;
+          // Approximate width of tooltip window
+          let widthOfTooltip = 280;
+          let tooltipX = +d3.event.pageX + ((d3.event.pageX + widthOfTooltip) > window.innerWidth ? (-widthOfTooltip) : 15);
           let tooltipY = +d3.event.pageY - 100;
           component.ddd.tooltip.html(component.d3Data[index].tooltip)
             // Top left of tooltip, relative to screen, not graph
@@ -194,7 +194,6 @@ Vue.component('d3-scatterplot-graph', {
       .append('svg')
         .attr('width', this.chartWidth + CANVAS.margin.right + CANVAS.margin.left)
         .attr('height', this.chartHeight + CANVAS.margin.top + CANVAS.margin.bottom);
-        // remove: .style('background', CHART.background);
     this.ddd.svg = d3.select(`#${this.id} svg`);
     this.ddd.tooltip = d3.select('body')
                          .append('div')
