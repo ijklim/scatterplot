@@ -97,39 +97,58 @@ Vue.component('d3-scatterplot-graph', {
   },
   methods: {
     /**
+     * Standard code to create a d3 element
+     * 
+     * @param {Object} param0 
+     */
+    createD3Element ({
+      data = [],
+      transformX = CANVAS.margin.left + 1,
+      transformY = 0,
+      type = '',
+    } = {}) {
+      let result = this.ddd.svg
+        .append('g')
+        .attr('transform', `translate(${transformX}, ${transformY})`);
+      if (type) {
+        result = result
+          .selectAll(type)
+          .data(data)
+          .enter()
+          .append(type);
+      }
+      return result;
+    },
+    /**
      * Draw dots on chart
      */
     drawData () {
       // translate(x, y) specifies where bar begins, +1 to move right of y axis
       // scatterplot uses circle instead of rect
-      this.ddd.chart = this.ddd.svg
-        .append('g')
-        .attr('transform', `translate(${CANVAS.margin.left + 1}, 0)`)
-        .selectAll('circle')
-        .data(this.d3Data.map(d => ({
-          hasDopingAllegation: d.hasDopingAllegation,
-          x: d.x,
-          y: d.y,
-        })))
-        .enter()
-        .append('circle')
+      this.ddd.chart = this
+        .createD3Element({
+          data: this.d3Data.map(d => ({
+            hasDopingAllegation: d.hasDopingAllegation,
+            x: d.x,
+            y: d.y,
+          })),
+          type: 'circle',
+        })
         .attr('fill', d => d.hasDopingAllegation ? CANVAS.colorHasDopingAllegation : CANVAS.colorNoDopingAllegation)
         .attr('r', _ => CANVAS.circleRadius)
         .attr('cx', d => this.axis.x.scale(d.x))
         .attr('cy', d => this.axis.y.scale(d.y));
       
       // Add names of cyclist
-      this.ddd.svg
-        .append('g')
-        .attr('transform', `translate(${CANVAS.margin.left + 1}, 0)`)
-        .selectAll('text')
-        .data(this.d3Data.map(d => ({
-          text: d.name,
-          x: d.x,
-          y: d.y,
-        })))
-        .enter()
-        .append('text')
+      this
+        .createD3Element({
+          data: this.d3Data.map(d => ({
+            text: d.name,
+            x: d.x,
+            y: d.y,
+          })),
+          type: 'text',
+        })
         .text(d => d.text)
         .attr('x', d => this.axis.x.scale(d.x) + CANVAS.circleRadius + 5)
         .attr('y', d => this.axis.y.scale(d.y) + CANVAS.circleRadius)
@@ -143,25 +162,23 @@ Vue.component('d3-scatterplot-graph', {
         { x: left, y: top + 30, color: CANVAS.colorNoDopingAllegation, text: 'No doping allegation', },
       ];
 
-      this.ddd.svg
-        .append('g')
-        .attr('transform', `translate(${CANVAS.margin.left + 1}, 0)`)
-        .selectAll('circle')
-        .data(legends)
-        .enter()
-        .append('circle')
+      // Colored dots in legend
+      this
+        .createD3Element({
+          data: legends,
+          type: 'circle',
+        })
         .attr('fill', d => d.color)
         .attr('r', _ => CANVAS.circleRadius)
         .attr('cx', d => d.x)
         .attr('cy', d => d.y);
       
-      this.ddd.svg
-        .append('g')
-        .attr('transform', `translate(${CANVAS.margin.left + 1}, 0)`)
-        .selectAll('text')
-        .data(legends)
-        .enter()
-        .append('text')
+      // Text in legend
+      this
+        .createD3Element({
+          data: legends,
+          type: 'text',
+        })
         .text(d => d.text)
         .attr('x', d => d.x + CANVAS.circleRadius + 5)
         .attr('y', d => d.y + CANVAS.circleRadius)
@@ -170,9 +187,11 @@ Vue.component('d3-scatterplot-graph', {
     drawGuide () {
       // Y Guide
       // translate(x, y) specifies where y axis begins, drawn from top to bottom
-      this.ddd.svg
-        .append('g')
-        .attr('transform', `translate(${CANVAS.margin.left}, ${CANVAS.margin.top})`)
+      this
+        .createD3Element({
+          transformX: CANVAS.margin.left,
+          transformY: CANVAS.margin.top,
+        })
         .call(d3
           .axisLeft(this.axis.y.values)
           .ticks(5)
@@ -180,9 +199,11 @@ Vue.component('d3-scatterplot-graph', {
       
       // X Guide
       // transform(x, y) specifies where x axis begins, drawn from left to right
-      this.ddd.svg
-        .append('g')
-        .attr('transform', `translate(${CANVAS.margin.left}, ${CANVAS.margin.top + this.chartHeight})`)
+      this
+        .createD3Element({
+          transformX: CANVAS.margin.left,
+          transformY: CANVAS.margin.top + this.chartHeight,
+        })
         .call(d3
           .axisBottom(this.axis.x.values)
           .ticks(10)
