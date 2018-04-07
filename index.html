@@ -5,7 +5,7 @@
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
 
-  <title>Scatterplot Graph using D3 v.2</title>
+  <title>Scatterplot Graph using D3 v.3</title>
 
   <link href="https://fonts.googleapis.com/css?family=Material+Icons|Raleway" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vuetify/1.0.13/vuetify.min.css">
@@ -55,7 +55,7 @@
       left: 0px;
       padding: 10px 20px;
       border-radius: 5px;
-      background: #0D47A1;
+      background: rgba(13, 71, 161, .9);
       color: white;
       max-width: 250px;
     }
@@ -109,6 +109,7 @@
               let rank1Time = this.timeToSeconds(json[0].Time);
               this.d3Data = json.map(value => ({
                 hasDopingAllegation: value.Doping != '',
+                name: value.Name,
                 tooltip: this.formatTooltipData(value),
                 x: this.timeToSeconds(value.Time) - rank1Time,
                 y: value.Place,
