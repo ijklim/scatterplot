@@ -10,6 +10,8 @@ const CANVAS = {
   // 1 place shift
   yDomainOriginShift: 1,
   circleRadius: 5,
+  colorHasDopingAllegation: '#E53935',
+  colorNoDopingAllegation: '#90CAF9',
 };
 
 Vue.component('d3-scatterplot-graph', {
@@ -145,9 +147,7 @@ Vue.component('d3-scatterplot-graph', {
       // rect needs x, y, width, and height
       // circles need cx, cy, and r
       this.ddd.chart
-        .attr('fill', (data, index) => {
-          return 'orange'
-        })
+        .attr('fill', (_, index) => this.d3Data[index].hasDopingAllegation ? CANVAS.colorHasDopingAllegation : CANVAS.colorNoDopingAllegation)
         .attr('r', _ => CANVAS.circleRadius)
         .attr('cx', (data, index) => this.axis.x.scale(data[1]))
         .attr('cy', (data, index) => this.axis.y.scale(data[0]));

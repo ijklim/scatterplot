@@ -108,6 +108,7 @@
             .then(json => {
               let rank1Time = this.timeToSeconds(json[0].Time);
               this.d3Data = json.map(value => ({
+                hasDopingAllegation: value.Doping != '',
                 tooltip: this.formatTooltipData(value),
                 x: this.timeToSeconds(value.Time) - rank1Time,
                 y: value.Place,
