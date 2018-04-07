@@ -209,6 +209,22 @@ Vue.component('d3-scatterplot-graph', {
           .ticks(10)
           .tickFormat(d => d3.timeFormat('%M:%S')(d * 1000))
         );
+      
+      let xLabel = [
+        { x: Math.floor(this.chartWidth / 2), y: this.graphHeight - (CANVAS.margin.bottom - 40), color: 'black', text: 'Minutes Behind Fastest Time', },
+      ];
+      this
+        .createD3Element({
+          data: xLabel,
+          type: 'text',
+        })
+        .text(d => d.text)
+        .attr('x', d => d.x)
+        .attr('y', d => d.y)
+        .style('font-size', '15px')
+        .style('font-weight', 'bold')
+        .attr('text-anchor', 'middle')
+        .style('fill', '#6D4C41');
     },
     addListeners () {
       let component = this;
