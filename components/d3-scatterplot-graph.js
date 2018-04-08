@@ -197,6 +197,24 @@ Vue.component('d3-scatterplot-graph', {
           .ticks(5)
         );
       
+      let yLabel = [
+        { x: -90, y: -25, text: 'Ranking', },
+      ];
+      this
+        .createD3Element({
+          data: yLabel,
+          type: 'text',
+        })
+        .text(d => d.text)
+        .attr("transform", "rotate(-90)")
+        .attr('x', d => d.x)
+        .attr('y', d => d.y)
+        .style('font-size', '15px')
+        .style('font-weight', 'bold')
+        .attr('text-anchor', 'middle')
+        .style('fill', '#6D4C41');
+      
+
       // X Guide
       // transform(x, y) specifies where x axis begins, drawn from left to right
       this
@@ -211,7 +229,7 @@ Vue.component('d3-scatterplot-graph', {
         );
       
       let xLabel = [
-        { x: Math.floor(this.chartWidth / 2), y: this.graphHeight - (CANVAS.margin.bottom - 40), color: 'black', text: 'Minutes Behind Fastest Time', },
+        { x: Math.floor(this.chartWidth / 2), y: this.graphHeight - (CANVAS.margin.bottom - 40), text: 'Minutes Behind Fastest Time', },
       ];
       this
         .createD3Element({
